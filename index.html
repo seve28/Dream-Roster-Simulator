@@ -26,13 +26,14 @@
 
   <main class="wrap">
     <section id="home" class="page on">
+      <p class="eyebrow">Vancouver 2010</p>
       <h1>Dream Roster Simulator</h1>
-      <p class="muted" id="homeLead"></p>
+      <p class="muted lead" id="homeLead"></p>
       <div class="actions">
         <button class="btn" data-go="roster" id="btnRoster" type="button"></button>
         <button class="btn ghost" data-go="simulate" id="btnSim" type="button"></button>
       </div>
-      <div class="grid how" id="howGrid"></div>
+      <div class="how" id="howGrid"></div>
       <h2 id="groupsTitle"></h2>
       <div class="groups" id="homeGroups"></div>
     </section>
@@ -63,18 +64,18 @@
         </select>
         <button class="btn ghost" id="fillOfficial" type="button"></button>
         <button class="btn ghost" id="clearRoster" type="button"></button>
-        <button class="btn" id="saveRoster" type="button"></button>
+        <button class="btn ghost" id="saveRoster" type="button"></button>
         <button class="btn" id="playFromRoster" type="button"></button>
       </div>
       <p class="counts" id="counts"></p>
-      <div class="split">
+      <div class="split roster-layout">
         <div>
           <h3 id="poolLabel"></h3>
           <div class="list" id="playerList"></div>
         </div>
         <div>
           <h3 id="pickedLabel"></h3>
-          <div class="list" id="pickedList"></div>
+          <div id="pickedList" class="sheet"></div>
         </div>
       </div>
     </section>
@@ -82,17 +83,25 @@
     <section id="simulate" class="page">
       <h1 id="simTitle"></h1>
       <p class="muted" id="simLead"></p>
-      <div class="toolbar">
+      <div class="toolbar playbar">
         <select id="homeTeam"></select>
-        <span>vs</span>
+        <button class="btn ghost swap" id="swapBtn" type="button">⇄</button>
         <select id="awayTeam"></select>
         <button class="btn" id="playBtn" type="button"></button>
       </div>
-      <div class="sim" id="simOut"></div>
+      <div id="board" class="board empty"></div>
     </section>
   </main>
 
+  <footer>
+    <div class="bar foot">
+      <span>Dream Roster Simulator · ОИ-2010</span>
+      <span class="muted">GitHub Pages · без сервера</span>
+    </div>
+  </footer>
+
   <script src="data.js"></script>
+  <script src="photos.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
