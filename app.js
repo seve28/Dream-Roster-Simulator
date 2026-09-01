@@ -2,7 +2,7 @@ const T = {
   ru: {
     home: "Главная", teams: "Команды", roster: "Состав", simulate: "Играть",
     sub: "Олимпиада-2010 · матч в браузере",
-    lead: "Собери 23-ку любой сборной Ванкувера и сразу сыграй текстовый матч. Никакой очереди и предпрогона: состав выбираешь ты, результат считает сайт.",
+    lead: "Собери сборную ОИ-2010 и сразу получи текст матча.",
     btnRoster: "Собрать состав", btnSim: "Играть матч",
     teamsTitle: "Сборные ОИ-2010",
     teamsLead: "Нажми команду — откроется её пул. Официальные 23 можно подставить одной кнопкой.",
@@ -13,7 +13,7 @@ const T = {
     playHere: "Играть этим составом",
     search: "Поиск",
     simTitle: "Матч",
-    simLead: "Если 23-ка не собрана, берётся официальный состав. Живой ИИ-репортаж — позже; сейчас движок в браузере.",
+    simLead: "Россия и Канада уже с официальной 23-кой. Можно сразу жать «Играть» или сначала поменять состав.",
     play: "Играть",
     group: "Группа",
     pool: "Пул", picked: "Состав по звеньям",
@@ -21,14 +21,16 @@ const T = {
     players: "игроков",
     how1t: "1. Сборная", how1: "Выбери команду ОИ-2010.",
     how2t: "2. Состав", how2: "Собери 23 из пула или возьми официальных.",
-    how3t: "3. Матч", how3: "Нажми «Играть» — трансляция появится сразу.",
+    how3t: "3. Матч", how3: "Нажми «Играть» и скопируй счёт в чат.",
     needData: "Не найден data.js. Лежит ли он в той же папке, что и index.html?",
-    waitPlay: "Выбери две команды и нажми «Играть»."
+    waitPlay: "Россия — Канада уже выбраны. Нажми «Играть».",
+    copy: "Скопировать счёт",
+    copied: "Скопировано"
   },
   en: {
     home: "Home", teams: "Teams", roster: "Roster", simulate: "Play",
     sub: "Olympics 2010 · match in the browser",
-    lead: "Build a 23-man Vancouver roster and play a text match instantly. You pick the players; the site runs the game.",
+    lead: "Build a 2010 Olympic roster and get a text match at once.",
     btnRoster: "Build roster", btnSim: "Play match",
     teamsTitle: "OI-2010 teams",
     teamsLead: "Click a team to open its pool. Official 23 can be loaded in one tap.",
@@ -39,7 +41,7 @@ const T = {
     playHere: "Play this roster",
     search: "Search",
     simTitle: "Match",
-    simLead: "If no custom 23 is saved, the official roster is used. AI live report comes later; the engine runs here.",
+    simLead: "Russia and Canada start with the official 23. Play now or edit the roster first.",
     play: "Play",
     group: "Group",
     pool: "Pool", picked: "Lines",
@@ -47,9 +49,11 @@ const T = {
     players: "players",
     how1t: "1. Team", how1: "Pick an OI-2010 side.",
     how2t: "2. Roster", how2: "Build 23 from the pool or load official.",
-    how3t: "3. Match", how3: "Hit Play — the report appears at once.",
+    how3t: "3. Match", how3: "Hit Play and copy the score to chat.",
     needData: "data.js is missing. Keep it next to index.html.",
-    waitPlay: "Pick two teams and press Play."
+    waitPlay: "Russia vs Canada is ready. Press Play.",
+    copy: "Copy score",
+    copied: "Copied"
   }
 };
 
@@ -99,6 +103,27 @@ function emptySlots() {
   return o;
 }
 
+function fillOfficialSlots(teamId) {
+  const off = DRS_DATA.pools[teamId].players.filter(p => p.status === "official");
+  const s = emptySlots();
+  const take = (pos) => off.filter(p => p.pos === pos).sort((a,b) => b.rating - a.rating).map(p => p.id);
+  const g = take("G"), d = take("D"), f = take("F");
+  SLOTS.filter(x => x.pos==="G").forEach((x,i) => s[x.id] = g[i] || null);
+  SLOTS.filter(x => x.pos==="D").forEach((x,i) => s[x.id] = d[i] || null);
+  SLOTS.filter(x => x.pos==="F").forEach((x,i) => s[x.id] = f[i] || null);
+  return s;
+}
+
+function ensureStarterRosters() {
+  ["RUS", "CAN"].forEach(id => {
+    const cur = selected[id];
+    const empty = !cur || Array.isArray(cur) || usedIds(id).length === 0;
+    if (empty) selected[id] = fillOfficialSlots(id);
+  });
+  persist();
+}
+
+
 function teamSlots(teamId) {
   let v = selected[teamId];
   if (!v) { selected[teamId] = emptySlots(); return selected[teamId]; }
@@ -142,6 +167,31 @@ function avatar(p) {
 
 let dragId = null;
 let pickId = null;
+let dragScrollTimer = null;
+
+function dragAutoScroll(e) {
+  const y = e.clientY;
+  const edge = 80;
+  let dy = 0;
+  if (y < edge) dy = -22;
+  else if (y > window.innerHeight - edge) dy = 22;
+  if (dy) window.scrollBy(0, dy);
+  const sheet = document.getElementById("pickedList");
+  if (sheet) {
+    const r = sheet.getBoundingClientRect();
+    if (e.clientX >= r.left && e.clientX <= r.right) {
+      if (y < r.top + 50) sheet.scrollTop -= 18;
+      else if (y > r.bottom - 50) sheet.scrollTop += 18;
+    }
+  }
+}
+if (!window.__drsDragScroll) {
+  window.__drsDragScroll = true;
+  document.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dragAutoScroll(e);
+  });
+}
 
 
 function go(id) {
@@ -420,8 +470,19 @@ function play() {
   });
   if (extra) html += `<div class="period event goal">${extra}</div>`;
   html += `<div class="final">${lang === "ru" ? "Итог" : "Final"}: ${a.name} ${ga}:${gb} ${b.name}</div>`;
+  const copyLine = `${a.name} ${ga}:${gb} ${b.name} — Dream Roster Simulator\nhttps://seve28.github.io/Dream-Roster-Simulator/`;
+  html += `<div class="copybar"><button class="btn ghost" type="button" id="copyScore">${L().copy}</button></div>`;
   board.className = "board";
   board.innerHTML = html;
+  const btn = document.getElementById("copyScore");
+  if (btn) btn.onclick = async () => {
+    try { await navigator.clipboard.writeText(copyLine); }
+    catch (e) {
+      const ta = document.createElement("textarea"); ta.value = copyLine; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
+    }
+    btn.textContent = L().copied;
+    setTimeout(() => btn.textContent = L().copy, 1500);
+  };
 }
 
 function applyLang() {
@@ -452,7 +513,11 @@ function applyLang() {
   if (!document.getElementById("board").innerHTML || document.getElementById("board").classList.contains("empty")) emptyBoard();
   renderGroups("homeGroups", true);
   renderGroups("teamsGroups", true);
+  ensureStarterRosters();
   fillSelects();
+  document.getElementById("homeTeam").value = "RUS";
+  document.getElementById("awayTeam").value = "CAN";
+  document.getElementById("teamSelect").value = "RUS";
   renderPlayers();
 }
 
@@ -468,14 +533,7 @@ document.getElementById("posFilter").onchange = renderPlayers;
 document.getElementById("statusFilter").onchange = renderPlayers;
 document.getElementById("fillOfficial").onclick = () => {
   const id = currentTeamId();
-  const off = DRS_DATA.pools[id].players.filter(p => p.status === "official");
-  const s = emptySlots();
-  const take = (pos) => off.filter(p => p.pos === pos).sort((a,b) => b.rating - a.rating).map(p => p.id);
-  const g = take("G"), d = take("D"), f = take("F");
-  SLOTS.filter(x => x.pos==="G").forEach((x,i) => s[x.id] = g[i] || null);
-  SLOTS.filter(x => x.pos==="D").forEach((x,i) => s[x.id] = d[i] || null);
-  SLOTS.filter(x => x.pos==="F").forEach((x,i) => s[x.id] = f[i] || null);
-  selected[id] = s;
+  selected[id] = fillOfficialSlots(id);
   persist();
   renderPlayers();
 };
