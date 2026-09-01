@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dream Roster Simulator</title>
+  <meta name="description" content="Собери состав ОИ-2010 и сыграй текстовый матч прямо в браузере." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <button class="logo" data-go="home" type="button">
+        Dream Roster Simulator
+        <small id="logoSub"></small>
+      </button>
+      <nav>
+        <button data-go="home" type="button"></button>
+        <button data-go="roster" type="button"></button>
+        <button data-go="simulate" type="button"></button>
+        <button data-go="teams" type="button"></button>
+        <button class="lang" id="langBtn" type="button">EN</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="home" class="page on">
+      <h1>Dream Roster Simulator</h1>
+      <p class="muted" id="homeLead"></p>
+      <div class="actions">
+        <button class="btn" data-go="roster" id="btnRoster" type="button"></button>
+        <button class="btn ghost" data-go="simulate" id="btnSim" type="button"></button>
+      </div>
+      <div class="grid how" id="howGrid"></div>
+      <h2 id="groupsTitle"></h2>
+      <div class="groups" id="homeGroups"></div>
+    </section>
+
+    <section id="teams" class="page">
+      <h1 id="teamsTitle"></h1>
+      <p class="muted" id="teamsLead"></p>
+      <div class="groups" id="teamsGroups"></div>
+    </section>
+
+    <section id="roster" class="page">
+      <h1 id="rosterTitle"></h1>
+      <p class="muted" id="rosterLead"></p>
+      <div class="toolbar">
+        <select id="teamSelect"></select>
+        <input type="search" id="q" />
+        <select id="posFilter">
+          <option value="">POS</option>
+          <option value="G">G</option>
+          <option value="D">D</option>
+          <option value="F">F</option>
+        </select>
+        <select id="statusFilter">
+          <option value="">status</option>
+          <option value="official">official</option>
+          <option value="reserve">reserve</option>
+          <option value="candidate">candidate</option>
+        </select>
+        <button class="btn ghost" id="fillOfficial" type="button"></button>
+        <button class="btn ghost" id="clearRoster" type="button"></button>
+        <button class="btn" id="saveRoster" type="button"></button>
+        <button class="btn" id="playFromRoster" type="button"></button>
+      </div>
+      <p class="counts" id="counts"></p>
+      <div class="split">
+        <div>
+          <h3 id="poolLabel"></h3>
+          <div class="list" id="playerList"></div>
+        </div>
+        <div>
+          <h3 id="pickedLabel"></h3>
+          <div class="list" id="pickedList"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="simulate" class="page">
+      <h1 id="simTitle"></h1>
+      <p class="muted" id="simLead"></p>
+      <div class="toolbar">
+        <select id="homeTeam"></select>
+        <span>vs</span>
+        <select id="awayTeam"></select>
+        <button class="btn" id="playBtn" type="button"></button>
+      </div>
+      <div class="sim" id="simOut"></div>
+    </section>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
